@@ -96,8 +96,8 @@ image.onload = _ => {
 
     for ( let x = 0 ; x<=texSize; x++ ){
         for ( let y = 0 ; y<=texSize; y++ ){
-            uvs.push(x/texSize - 0.01)
-            uvs.push(y/texSize - 0.01)
+            uvs.push(x/texSize - 0.04)
+            uvs.push(y/texSize - 0.04)
         }
     }
 
@@ -148,7 +148,7 @@ image.onload = _ => {
 
 
     var logo = new THREE.Mesh( new THREE.PlaneGeometry( image.width, image.height ), new THREE.MeshBasicMaterial({
-        map: new THREE.TextureLoader().load( 'assets/iteota-logo-white-outx512.jpg' ),
+        map: new THREE.TextureLoader().load( 'assets/single-line.png' ),
         transparent: true,
         depthWrite:false,
         blending: THREE.AdditiveBlending,
@@ -160,7 +160,7 @@ image.onload = _ => {
     // camera.position.z = 450
     camera.lookAt( scene )
 
-    scene.add( logo )
+    // scene.add( logo )
 
 
     function resize(){
@@ -180,13 +180,13 @@ image.onload = _ => {
 
 
         TweenLite.to( logo.material, 2, { opacity: 0.95, delay: 8, onComplete:_=>{
-            document.onclick = _ => {
+            // document.onclick = _ => {
 
                 TweenLite.to( prop, 10, { converge: 1})
-                    TweenLite.to( logo.material, 2, { opacity: 0.0, delay:4})
-                    TweenLite.to( material.uniforms.uOpacity, 2, { value: 0.0, delay: 4 })
+                    // TweenLite.to( logo.material, 2, { opacity: 0.0, delay:10})
+                    // TweenLite.to( material.uniforms.uOpacity, 2, { value: 0.0, delay: 10 })
 
-            }
+            // }
         } })
 
 
@@ -228,4 +228,4 @@ image.onload = _ => {
 
 }
 
-image.src =  'assets/iteota-logo-white-outx512.jpg'
+image.src =  'assets/single-line.png'

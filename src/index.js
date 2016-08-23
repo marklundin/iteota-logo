@@ -11,6 +11,7 @@ var logoVert = glslify( './logo.vs' )
 var renderer = new THREE.WebGLRenderer({alpha:false})
 var camera = new THREE.PerspectiveCamera( 90, window.innerWidth/window.innerHeight)
 var scene = new THREE.Scene()
+var ray = new THREE.Ray()
 // var controls = new THREE.OrbitControls( camera, renderer.domElement )
 
 
@@ -198,25 +199,39 @@ image.onload = _ => {
     // TweenLite.to( logo,mate, 10, { converge: 1, delay:7 })
     // }
 
-    var mx = 0
-    var my = 0
-    document.onmousemove = function( e){
-        // console.log( e )
-        mx = ( e.screenX / window.innerWidth  ) * 0.3 - 0.15
-        my = ( e.screenY / window.innerHeight ) * 0.3 - 0.15
-        mx *=-1
-        my *=-1
-        // my = window.innerHeight * 0.01
 
+    var mouse = new THREE.Vector2( 100, 100 ),
+        mouse3D = new THREE.Vector3()
+
+    document.onmousemove =  e => {
+
+        mouse.x = ( e.clientX / window.innerWidth ) * 2 - 1;
+	    mouse.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
 
     }
 
+    var planee = new THREE.Plane(new THREE.Vector3( 0, 0, -1 )),
+        intersects = new THREE.Vector3();
+
     function render( t ){
 
-        scene.rotation.y += ( mx - scene.rotation.y ) * 0.01
-        scene.rotation.x += ( my - scene.rotation.x ) * 0.01
+        // scene.rotation.y += ( mx - scene.rotation.y ) * 0.01
+        // scene.rotation.x += ( my - scene.rotation.x ) * 0.01
+        camera.updateMatrixWorld( true )
+        ray.origin.setFromMatrixPosition( camera.matrixWorld );
+		ray.direction.set( mouse.x, mouse.y, 0.5 ).unproject( camera ).sub( camera.position ).normalize()
 
-        material.uniforms.uTex.value = stepGPU( null, t*0.005, prop.converge )
+        ray.intersectPlane( planee, mouse3D )
+        // sphere.position.copy(  material.uniforms.uSomeMouse.value )
+        // console.log( ray.direction.x, ray.direction.y, ray.direction.z )
+        // sphere.position.z = ray.direction.z
+        // sphere.position.copy( intersects )//.sub( camera.position )
+        // sphere.position.set(-0.229808623534432, -0.023296749150325147, -0.13332933220635823)
+        // console.log( sphere.position.x, sphere.position.y, sphere.position.z )
+        // sphere.position.z = -100;
+
+        material.uniforms.uTex.value = stepGPU( null, t*0.005, prop.converge, mouse3D )
+        // console.log( material.uniforms.uMouse.value.x )
         // controls.update( t )
         renderer.render( scene, camera )
         requestAnimationFrame( render )

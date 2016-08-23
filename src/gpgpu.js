@@ -20,6 +20,7 @@ export default( renderer, origin, dimension ) => {
         // },
         uniforms:{
             uTex: { type: "t", value: buffers[0] },
+            uMouse: { type: "v3", value: new THREE.Vector3(0, 0, 0) },
             uOrigin: { type: "t", value: origin },
             uResolution: { value: new THREE.Vector2( ...dimension ) },
             uTime: { value: 0.0 },
@@ -49,10 +50,11 @@ export default( renderer, origin, dimension ) => {
 
     scene.add( mesh );
 
-    let step = ( override, t, converge ) => {
+    let step = ( override, t, converge, mouse = new THREE.Vector3() ) => {
         // console.log( material.uniforms.uTime.value)
         let { source, target } = swap()
         material.uniforms.uTime.value = t
+        material.uniforms.uMouse.value.copy( mouse )
         material.uniforms.uConverge.value = converge || 0
         material.uniforms.uTex.value = override || source
         renderer.render( scene, camera, target, false );

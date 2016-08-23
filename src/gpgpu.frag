@@ -15,7 +15,7 @@ void main(){
     vec3 origin = texture2D( uTex, uv ).xyz;
 
     vec3 p = origin;
-    p += ( noise( p *  mix( 0.07, 0.01, uConverge ) ) * mix( 0.3, 0.3, uConverge ));
+    p += ( noise( p *  mix( 0.07, 0.01, uConverge ) ) * mix( 0.2, 0.3, uConverge ));
 
 
 

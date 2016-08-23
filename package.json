@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "budo index.js --live -- -t babelify -t glslify"
+    "dev": "budo src/index.js --live -- -t babelify -t glslify",
+    "build": "browserify src/index.js -o index.js -t babelify"
   },
   "author": "",
   "license": "ISC",

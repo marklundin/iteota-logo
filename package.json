@@ -1,0 +1,36 @@
+{
+  "name": "iteota-logo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "budo index.js --live -- -t babelify -t glslify"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "babel-preset-es2015": "^6.9.0",
+    "babelify": "^7.3.0",
+    "budo": "^8.3.0",
+    "canvas-fit": "^1.5.0",
+    "gl-context": "^0.1.1",
+    "glslify": "^5.0.2",
+    "image-sdf": "^1.0.4"
+  },
+  "browserify": {
+    "transform": [
+      "babelify",
+      "glslify"
+    ]
+  },
+  "dependencies": {
+    "gl-particles": "^1.1.0",
+    "gl-texture2d": "^2.0.10",
+    "glsl-aastep": "^1.0.1",
+    "glsl-curl-noise": "0.0.4",
+    "glsl-noise": "0.0.0",
+    "glslify": "^5.1.0",
+    "gsap": "^1.19.0",
+    "three.js": "^0.77.1"
+  }
+}

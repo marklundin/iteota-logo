@@ -50444,8 +50444,8 @@ image.onload = function (_) {
 
     for (var _x = 0; _x <= texSize; _x++) {
         for (var _y = 0; _y <= texSize; _y++) {
-            uvs.push(_x / texSize - 0.01);
-            uvs.push(_y / texSize - 0.01);
+            uvs.push(_x / texSize - 0.04);
+            uvs.push(_y / texSize - 0.04);
         }
     }
 
@@ -50492,7 +50492,7 @@ image.onload = function (_) {
     scene.add(particles);
 
     var logo = new _three2.default.Mesh(new _three2.default.PlaneGeometry(image.width, image.height), new _three2.default.MeshBasicMaterial({
-        map: new _three2.default.TextureLoader().load('assets/iteota-logo-white-outx512.jpg'),
+        map: new _three2.default.TextureLoader().load('assets/single-line.png'),
         transparent: true,
         depthWrite: false,
         blending: _three2.default.AdditiveBlending,
@@ -50503,7 +50503,7 @@ image.onload = function (_) {
     // camera.position.z = 450
     camera.lookAt(scene);
 
-    scene.add(logo);
+    // scene.add( logo )
 
     function resize() {
 
@@ -50519,12 +50519,13 @@ image.onload = function (_) {
     var prop = { converge: 0.0 };
 
     _gsap.TweenLite.to(logo.material, 2, { opacity: 0.95, delay: 8, onComplete: function onComplete(_) {
-            document.onclick = function (_) {
+            // document.onclick = _ => {
 
-                _gsap.TweenLite.to(prop, 10, { converge: 1 });
-                _gsap.TweenLite.to(logo.material, 2, { opacity: 0.0, delay: 4 });
-                _gsap.TweenLite.to(material.uniforms.uOpacity, 2, { value: 0.0, delay: 4 });
-            };
+            _gsap.TweenLite.to(prop, 10, { converge: 1 });
+            // TweenLite.to( logo.material, 2, { opacity: 0.0, delay:10})
+            // TweenLite.to( material.uniforms.uOpacity, 2, { value: 0.0, delay: 10 })
+
+            // }
         } });
 
     _gsap.TweenLite.to(camera.position, 6, { z: 550 });
@@ -50558,6 +50559,6 @@ image.onload = function (_) {
     render(Date.now());
 };
 
-image.src = 'assets/iteota-logo-white-outx512.jpg';
+image.src = 'assets/single-line.png';
 
 },{"./OrbitControls":3,"./gpgpu":4,"gsap":1,"three":2}]},{},[5]);

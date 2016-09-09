@@ -50285,12 +50285,13 @@ exports.default = function (renderer, origin, dimension) {
         uniforms: {
             uTex: { type: "t", value: buffers[0] },
             uMouse: { type: "v3", value: new _three2.default.Vector3(0, 0, 0) },
+            uMouseVel: { type: "v3", value: new _three2.default.Vector3(0, 0, 0) },
             uOrigin: { type: "t", value: origin },
             uResolution: { value: new (Function.prototype.bind.apply(_three2.default.Vector2, [null].concat(_toConsumableArray(dimension))))() },
             uTime: { value: 0.0 },
             uConverge: { value: 0.0 }
         },
-        fragmentShader: "#define GLSLIFY 1\nuniform sampler2D uTex;\nuniform sampler2D uOrigin;\nuniform vec3 uMouse;\n\nuniform float uTime;\nuniform vec2 uResolution;\nuniform float uConverge;\n\n//\n// Description : Array and textureless GLSL 2D/3D/4D simplex\n//               noise functions.\n//      Author : Ian McEwan, Ashima Arts.\n//  Maintainer : ijm\n//     Lastmod : 20110822 (ijm)\n//     License : Copyright (C) 2011 Ashima Arts. All rights reserved.\n//               Distributed under the MIT License. See LICENSE file.\n//               https://github.com/ashima/webgl-noise\n//\n\nvec3 mod289(vec3 x) {\n  return x - floor(x * (1.0 / 289.0)) * 289.0;\n}\n\nvec4 mod289(vec4 x) {\n  return x - floor(x * (1.0 / 289.0)) * 289.0;\n}\n\nvec4 permute(vec4 x) {\n     return mod289(((x*34.0)+1.0)*x);\n}\n\nvec4 taylorInvSqrt(vec4 r)\n{\n  return 1.79284291400159 - 0.85373472095314 * r;\n}\n\nfloat snoise(vec3 v)\n  {\n  const vec2  C = vec2(1.0/6.0, 1.0/3.0) ;\n  const vec4  D = vec4(0.0, 0.5, 1.0, 2.0);\n\n// First corner\n  vec3 i  = floor(v + dot(v, C.yyy) );\n  vec3 x0 =   v - i + dot(i, C.xxx) ;\n\n// Other corners\n  vec3 g = step(x0.yzx, x0.xyz);\n  vec3 l = 1.0 - g;\n  vec3 i1 = min( g.xyz, l.zxy );\n  vec3 i2 = max( g.xyz, l.zxy );\n\n  //   x0 = x0 - 0.0 + 0.0 * C.xxx;\n  //   x1 = x0 - i1  + 1.0 * C.xxx;\n  //   x2 = x0 - i2  + 2.0 * C.xxx;\n  //   x3 = x0 - 1.0 + 3.0 * C.xxx;\n  vec3 x1 = x0 - i1 + C.xxx;\n  vec3 x2 = x0 - i2 + C.yyy; // 2.0*C.x = 1/3 = C.y\n  vec3 x3 = x0 - D.yyy;      // -1.0+3.0*C.x = -0.5 = -D.y\n\n// Permutations\n  i = mod289(i);\n  vec4 p = permute( permute( permute(\n             i.z + vec4(0.0, i1.z, i2.z, 1.0 ))\n           + i.y + vec4(0.0, i1.y, i2.y, 1.0 ))\n           + i.x + vec4(0.0, i1.x, i2.x, 1.0 ));\n\n// Gradients: 7x7 points over a square, mapped onto an octahedron.\n// The ring size 17*17 = 289 is close to a multiple of 49 (49*6 = 294)\n  float n_ = 0.142857142857; // 1.0/7.0\n  vec3  ns = n_ * D.wyz - D.xzx;\n\n  vec4 j = p - 49.0 * floor(p * ns.z * ns.z);  //  mod(p,7*7)\n\n  vec4 x_ = floor(j * ns.z);\n  vec4 y_ = floor(j - 7.0 * x_ );    // mod(j,N)\n\n  vec4 x = x_ *ns.x + ns.yyyy;\n  vec4 y = y_ *ns.x + ns.yyyy;\n  vec4 h = 1.0 - abs(x) - abs(y);\n\n  vec4 b0 = vec4( x.xy, y.xy );\n  vec4 b1 = vec4( x.zw, y.zw );\n\n  //vec4 s0 = vec4(lessThan(b0,0.0))*2.0 - 1.0;\n  //vec4 s1 = vec4(lessThan(b1,0.0))*2.0 - 1.0;\n  vec4 s0 = floor(b0)*2.0 + 1.0;\n  vec4 s1 = floor(b1)*2.0 + 1.0;\n  vec4 sh = -step(h, vec4(0.0));\n\n  vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy ;\n  vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww ;\n\n  vec3 p0 = vec3(a0.xy,h.x);\n  vec3 p1 = vec3(a0.zw,h.y);\n  vec3 p2 = vec3(a1.xy,h.z);\n  vec3 p3 = vec3(a1.zw,h.w);\n\n//Normalise gradients\n  vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));\n  p0 *= norm.x;\n  p1 *= norm.y;\n  p2 *= norm.z;\n  p3 *= norm.w;\n\n// Mix final noise value\n  vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);\n  m = m * m;\n  return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1),\n                                dot(p2,x2), dot(p3,x3) ) );\n  }\n\nvec3 snoiseVec3( vec3 x ){\n\n  float s  = snoise(vec3( x ));\n  float s1 = snoise(vec3( x.y - 19.1 , x.z + 33.4 , x.x + 47.2 ));\n  float s2 = snoise(vec3( x.z + 74.2 , x.x - 124.5 , x.y + 99.4 ));\n  vec3 c = vec3( s , s1 , s2 );\n  return c;\n\n}\n\nvec3 curlNoise( vec3 p ){\n  \n  const float e = .1;\n  vec3 dx = vec3( e   , 0.0 , 0.0 );\n  vec3 dy = vec3( 0.0 , e   , 0.0 );\n  vec3 dz = vec3( 0.0 , 0.0 , e   );\n\n  vec3 p_x0 = snoiseVec3( p - dx );\n  vec3 p_x1 = snoiseVec3( p + dx );\n  vec3 p_y0 = snoiseVec3( p - dy );\n  vec3 p_y1 = snoiseVec3( p + dy );\n  vec3 p_z0 = snoiseVec3( p - dz );\n  vec3 p_z1 = snoiseVec3( p + dz );\n\n  float x = p_y1.z - p_y0.z - p_z1.y + p_z0.y;\n  float y = p_z1.x - p_z0.x - p_x1.z + p_x0.z;\n  float z = p_x1.y - p_x0.y - p_y1.x + p_y0.x;\n\n  const float divisor = 1.0 / ( 2.0 * e );\n  return normalize( vec3( x , y , z ) * divisor );\n\n}\n\nvoid main(){\n\n    vec2 uv = gl_FragCoord.xy / uResolution;\n\n    vec3 origin = texture2D( uTex, uv ).xyz;\n\n    vec3 p = origin;\n    p += ( curlNoise( p *  mix( 0.07, 0.01, uConverge ) ) * mix( 0.2, 0.3, uConverge ));\n\n    // Rotational Vector\n    vec3 direction = cross( normalize( p ), vec3( 0., 0., 1.0 ));\n    float th = 1.0 - uConverge;\n    float force = 0.8 * (th*th*th);\n\n    vec3 logo = texture2D( uOrigin, uv ).xyz;\n    vec3 d = logo - origin;\n\n    float l = smoothstep( 200.0, 10., length( uMouse - origin ));\n\n    float swipe =  smoothstep( 1000.0, 0.0, logo.x );\n    vec3 attractor = normalize( d ) * clamp( length( d ) * 0.1 , 0.2, 7. ) * ( 1.0 - l );\n    attractor += curlNoise( origin * 0.2 ) *  0.8;\n    attractor += curlNoise( vec3( origin.xy, origin.z + (uTime * 0.00000002 )) * 0.07 ) * ( l * 20.0);\n\n    direction = mix( direction * force, attractor, uConverge * swipe );\n\n    p += direction;\n\n    // p = logo;\n\n    // vec3 mouseTheta = ( p - uMouse  );\n    // mouseTheta += noise( mouseTheta * 0.002 ) * 2.9;\n    // float mouseForce = clamp( 0., 1., smoothstep( 10.0, 20., length( mouseTheta ))) * 100.0;\n    //\n    // p += normalize( mouseTheta ) * mouseForce;\n\n    gl_FragColor = vec4( p, 1.0 );\n\n}\n",
+        fragmentShader: "#define GLSLIFY 1\nuniform sampler2D uTex;\nuniform sampler2D uOrigin;\nuniform vec3 uMouse;\nuniform vec3 uMouseVel;\n\nuniform float uTime;\nuniform vec2 uResolution;\nuniform float uConverge;\n\n//\n// Description : Array and textureless GLSL 2D/3D/4D simplex\n//               noise functions.\n//      Author : Ian McEwan, Ashima Arts.\n//  Maintainer : ijm\n//     Lastmod : 20110822 (ijm)\n//     License : Copyright (C) 2011 Ashima Arts. All rights reserved.\n//               Distributed under the MIT License. See LICENSE file.\n//               https://github.com/ashima/webgl-noise\n//\n\nvec3 mod289_1(vec3 x) {\n  return x - floor(x * (1.0 / 289.0)) * 289.0;\n}\n\nvec4 mod289_1(vec4 x) {\n  return x - floor(x * (1.0 / 289.0)) * 289.0;\n}\n\nvec4 permute_1(vec4 x) {\n     return mod289_1(((x*34.0)+1.0)*x);\n}\n\nvec4 taylorInvSqrt(vec4 r)\n{\n  return 1.79284291400159 - 0.85373472095314 * r;\n}\n\nfloat snoise_1(vec3 v)\n  {\n  const vec2  C = vec2(1.0/6.0, 1.0/3.0) ;\n  const vec4  D = vec4(0.0, 0.5, 1.0, 2.0);\n\n// First corner\n  vec3 i  = floor(v + dot(v, C.yyy) );\n  vec3 x0 =   v - i + dot(i, C.xxx) ;\n\n// Other corners\n  vec3 g_0 = step(x0.yzx, x0.xyz);\n  vec3 l = 1.0 - g_0;\n  vec3 i1 = min( g_0.xyz, l.zxy );\n  vec3 i2 = max( g_0.xyz, l.zxy );\n\n  //   x0 = x0 - 0.0 + 0.0 * C.xxx;\n  //   x1 = x0 - i1  + 1.0 * C.xxx;\n  //   x2 = x0 - i2  + 2.0 * C.xxx;\n  //   x3 = x0 - 1.0 + 3.0 * C.xxx;\n  vec3 x1 = x0 - i1 + C.xxx;\n  vec3 x2 = x0 - i2 + C.yyy; // 2.0*C.x = 1/3 = C.y\n  vec3 x3 = x0 - D.yyy;      // -1.0+3.0*C.x = -0.5 = -D.y\n\n// Permutations\n  i = mod289_1(i);\n  vec4 p = permute_1( permute_1( permute_1(\n             i.z + vec4(0.0, i1.z, i2.z, 1.0 ))\n           + i.y + vec4(0.0, i1.y, i2.y, 1.0 ))\n           + i.x + vec4(0.0, i1.x, i2.x, 1.0 ));\n\n// Gradients: 7x7 points over a square, mapped onto an octahedron.\n// The ring size 17*17 = 289 is close to a multiple of 49 (49*6 = 294)\n  float n_ = 0.142857142857; // 1.0/7.0\n  vec3  ns = n_ * D.wyz - D.xzx;\n\n  vec4 j = p - 49.0 * floor(p * ns.z * ns.z);  //  mod(p,7*7)\n\n  vec4 x_ = floor(j * ns.z);\n  vec4 y_ = floor(j - 7.0 * x_ );    // mod(j,N)\n\n  vec4 x = x_ *ns.x + ns.yyyy;\n  vec4 y = y_ *ns.x + ns.yyyy;\n  vec4 h = 1.0 - abs(x) - abs(y);\n\n  vec4 b0 = vec4( x.xy, y.xy );\n  vec4 b1 = vec4( x.zw, y.zw );\n\n  //vec4 s0 = vec4(lessThan(b0,0.0))*2.0 - 1.0;\n  //vec4 s1 = vec4(lessThan(b1,0.0))*2.0 - 1.0;\n  vec4 s0 = floor(b0)*2.0 + 1.0;\n  vec4 s1 = floor(b1)*2.0 + 1.0;\n  vec4 sh = -step(h, vec4(0.0));\n\n  vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy ;\n  vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww ;\n\n  vec3 p0 = vec3(a0.xy,h.x);\n  vec3 p1 = vec3(a0.zw,h.y);\n  vec3 p2 = vec3(a1.xy,h.z);\n  vec3 p3 = vec3(a1.zw,h.w);\n\n//Normalise gradients\n  vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));\n  p0 *= norm.x;\n  p1 *= norm.y;\n  p2 *= norm.z;\n  p3 *= norm.w;\n\n// Mix final noise value\n  vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);\n  m = m * m;\n  return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1),\n                                dot(p2,x2), dot(p3,x3) ) );\n  }\n\nvec3 snoiseVec3( vec3 x ){\n\n  float s  = snoise_1(vec3( x ));\n  float s1 = snoise_1(vec3( x.y - 19.1 , x.z + 33.4 , x.x + 47.2 ));\n  float s2 = snoise_1(vec3( x.z + 74.2 , x.x - 124.5 , x.y + 99.4 ));\n  vec3 c = vec3( s , s1 , s2 );\n  return c;\n\n}\n\nvec3 curlNoise( vec3 p ){\n  \n  const float e = .1;\n  vec3 dx = vec3( e   , 0.0 , 0.0 );\n  vec3 dy = vec3( 0.0 , e   , 0.0 );\n  vec3 dz = vec3( 0.0 , 0.0 , e   );\n\n  vec3 p_x0 = snoiseVec3( p - dx );\n  vec3 p_x1 = snoiseVec3( p + dx );\n  vec3 p_y0 = snoiseVec3( p - dy );\n  vec3 p_y1 = snoiseVec3( p + dy );\n  vec3 p_z0 = snoiseVec3( p - dz );\n  vec3 p_z1 = snoiseVec3( p + dz );\n\n  float x = p_y1.z - p_y0.z - p_z1.y + p_z0.y;\n  float y = p_z1.x - p_z0.x - p_x1.z + p_x0.z;\n  float z = p_x1.y - p_x0.y - p_y1.x + p_y0.x;\n\n  const float divisor = 1.0 / ( 2.0 * e );\n  return normalize( vec3( x , y , z ) * divisor );\n\n}\n\n//\n// Description : Array and textureless GLSL 2D simplex noise function.\n//      Author : Ian McEwan, Ashima Arts.\n//  Maintainer : ijm\n//     Lastmod : 20110822 (ijm)\n//     License : Copyright (C) 2011 Ashima Arts. All rights reserved.\n//               Distributed under the MIT License. See LICENSE file.\n//               https://github.com/ashima/webgl-noise\n//\n\nvec3 mod289_0(vec3 x) {\n  return x - floor(x * (1.0 / 289.0)) * 289.0;\n}\n\nvec2 mod289_0(vec2 x) {\n  return x - floor(x * (1.0 / 289.0)) * 289.0;\n}\n\nvec3 permute_0(vec3 x) {\n  return mod289_0(((x*34.0)+1.0)*x);\n}\n\nfloat snoise_0(vec2 v)\n  {\n  const vec4 C = vec4(0.211324865405187,  // (3.0-sqrt(3.0))/6.0\n                      0.366025403784439,  // 0.5*(sqrt(3.0)-1.0)\n                     -0.577350269189626,  // -1.0 + 2.0 * C.x\n                      0.024390243902439); // 1.0 / 41.0\n// First corner\n  vec2 i  = floor(v + dot(v, C.yy) );\n  vec2 x0 = v -   i + dot(i, C.xx);\n\n// Other corners\n  vec2 i1;\n  //i1.x = step( x0.y, x0.x ); // x0.x > x0.y ? 1.0 : 0.0\n  //i1.y = 1.0 - i1.x;\n  i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);\n  // x0 = x0 - 0.0 + 0.0 * C.xx ;\n  // x1 = x0 - i1 + 1.0 * C.xx ;\n  // x2 = x0 - 1.0 + 2.0 * C.xx ;\n  vec4 x12 = x0.xyxy + C.xxzz;\n  x12.xy -= i1;\n\n// Permutations\n  i = mod289_0(i); // Avoid truncation effects in permutation\n  vec3 p = permute_0( permute_0( i.y + vec3(0.0, i1.y, 1.0 ))\n    + i.x + vec3(0.0, i1.x, 1.0 ));\n\n  vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);\n  m = m*m ;\n  m = m*m ;\n\n// Gradients: 41 points uniformly over a line, mapped onto a diamond.\n// The ring size 17*17 = 289 is close to a multiple of 41 (41*7 = 287)\n\n  vec3 x = 2.0 * fract(p * C.www) - 1.0;\n  vec3 h = abs(x) - 0.5;\n  vec3 ox = floor(x + 0.5);\n  vec3 a0 = x - ox;\n\n// Normalise gradients implicitly by scaling m\n// Approximation of: m *= inversesqrt( a0*a0 + h*h );\n  m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );\n\n// Compute final noise value at P\n  vec3 g;\n  g.x  = a0.x  * x0.x  + h.x  * x0.y;\n  g.yz = a0.yz * x12.xz + h.yz * x12.yw;\n  return 130.0 * dot(m, g);\n}\n\nvoid main(){\n\n    vec2 uv = gl_FragCoord.xy / uResolution;\n\n    vec3 origin = texture2D( uTex, uv ).xyz;\n\n    vec3 p = origin;\n    float theta = atan( p.x, p.y ) * .02;\n    p += normalize( p ) * 0.1 * ( 1.0 - uConverge );\n\n    if( length( p ) * ( 1.0 - uConverge ) > 280. + ( 50. * snoise_0( vec2( theta * 600., 280. ) )) ){\n      p = normalize( p ) * 200.;\n    }\n\n    float irisNoise = ( snoise_0( vec2( theta* 100., length( p ) * 0.001 ) * 0.02 ) * mix( .1, 0.3, uConverge ));\n    vec3 perp = cross( normalize( p ), vec3( 0., 0., 1.)) * sin( irisNoise );\n\n    p += mix( perp, curlNoise( p * 0.01 ) * 0.3, uConverge );\n    // p +=\n\n    // Rotational Vector\n    vec3 direction = vec3(0.0);//cross( normalize( p ), vec3( 0., 0., 1.0 ));\n    // float th = 1.0 - uConverge;\n    // float force = 0.8 * (th*th*th);\n\n    vec3 logo = texture2D( uOrigin, uv ).xyz;\n    vec3 d = logo - origin;\n\n    float l = smoothstep( 250.0, 100., length( uMouse - origin )) * ( smoothstep( 5.0, 20.0, length ( uMouseVel  )) + 0.5 );\n\n    float swipe =  smoothstep( 1000.0, 0.0, logo.x );\n    vec3 attractor = normalize( d ) * clamp( length( d ) * 0.1 , 0.2, 7. );\n\n    attractor = mix( attractor, ( curlNoise( origin * 0.01 ) * 0.4 ), l );\n    attractor += curlNoise( origin * 0.2 ) *  0.8;\n    attractor += curlNoise( vec3( p.xy, p.z + uTime) * 0.007 ) * ( l * 20.0);\n\n    direction = mix( direction, attractor, uConverge * swipe );\n\n    p += direction;\n\n    // p = logo;\n\n    // vec3 mouseTheta = ( p - uMouse  );\n    // mouseTheta += noise( mouseTheta * 0.002 ) * 2.9;\n    // float mouseForce = clamp( 0., 1., smoothstep( 10.0, 20., length( mouseTheta ))) * 100.0;\n    //\n    // p += normalize( mouseTheta ) * mouseForce;\n\n    gl_FragColor = vec4( p, 1.0 );\n\n}\n",
         // vertexShader:glslify('./gpu-point.vert'),
         // blending: THREE.AdditiveBlending,
         // blendSrc: THREE.SrcAlphaFactor,
@@ -50310,6 +50311,7 @@ exports.default = function (renderer, origin, dimension) {
 
     var scene = new _three2.default.Scene(),
         mesh = new _three2.default.Mesh(new _three2.default.PlaneBufferGeometry(1, 1), material),
+        mouseLast = new _three2.default.Vector3(),
         target = void 0;
 
     scene.add(mesh);
@@ -50326,10 +50328,13 @@ exports.default = function (renderer, origin, dimension) {
 
         material.uniforms.uTime.value = t;
         material.uniforms.uMouse.value.copy(mouse);
+        material.uniforms.uMouseVel.value.subVectors(mouse, mouseLast);
+        // material.uniforms.uMouseVel.value.multiplyScalar( 0.56 )
         material.uniforms.uConverge.value = converge || 0;
         material.uniforms.uTex.value = override || source;
         renderer.render(scene, camera, target, false);
         // console.log( material.uniforms.uTime.value)
+        mouseLast.copy(mouse);
         return target;
     };
 
@@ -50429,8 +50434,8 @@ image.onload = function (_) {
     while (l-- >= 0) {
         radius = mix(l / len, minRadius, maxRadius);
         // console.log( radius)
-        altPositions.push(Math.sin(step * l) * radius);
-        altPositions.push(Math.cos(step * l) * radius);
+        altPositions.push(Math.sin(step * l) * radius + Math.random() * 10.0);
+        altPositions.push(Math.cos(step * l) * radius + Math.random() * 10.0);
         altPositions.push((len - l) * 0.01);
     }
 
@@ -50479,7 +50484,7 @@ image.onload = function (_) {
         },
         uniforms: {
             uTex: { type: "t", value: output.texture },
-            uOpacity: { value: 0.3 },
+            uOpacity: { value: 0.0 },
             uTime: { value: 0.0 }
         },
         fragmentShader: "#define GLSLIFY 1\n\nfloat aastep(float threshold, float value) {\n    #ifdef GL_OES_standard_derivatives\n        float afwidth = length(vec2(dFdx(value), dFdy(value))) * 0.70710678118654757;\n        return smoothstep(threshold-afwidth, threshold+afwidth, value);\n    #else\n        return step(threshold, value);\n    #endif\n}\n\nuniform float uOpacity;\n\nvoid main() {\n\n    vec2 uv = gl_PointCoord.xy - vec2( 0.5 );\n    float value = aastep( 0.5, 1.0 - length( uv ));\n    // if( value == 0.0 ) discard;\n    gl_FragColor = vec4( vec3( 1.0 ), value * uOpacity );\n}\n",
@@ -50523,7 +50528,7 @@ image.onload = function (_) {
 
     var prop = { converge: 0.0 };
 
-    _gsap.TweenLite.to(logo.material, 2, { opacity: 0.95, delay: 8, onComplete: function onComplete(_) {
+    _gsap.TweenLite.to(material.uniforms.uOpacity, 4, { value: 0.3, onComplete: function onComplete(_) {
             // document.onclick = _ => {
 
             _gsap.TweenLite.to(prop, 10, { converge: 1 });
@@ -50533,18 +50538,23 @@ image.onload = function (_) {
             // }
         } });
 
-    _gsap.TweenLite.to(camera.position, 6, { z: 550 });
+    camera.position.z = 550;
+    // TweenLite.to( camera.position, 6, { z: 550 })
 
     // TweenLite.to( logo,mate, 10, { converge: 1, delay:7 })
     // }
 
     var mouse = new _three2.default.Vector2(100, 100),
+        mouseTarget = new _three2.default.Vector2(100, 100),
         mouse3D = new _three2.default.Vector3();
 
     document.onmousemove = function (e) {
 
-        mouse.x = e.clientX / window.innerWidth * 2 - 1;
-        mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+        mouseTarget.x = e.clientX / window.innerWidth * 2 - 1;
+        mouseTarget.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+        mouse.x += (mouseTarget.x - mouse.x) * 0.09;
+        mouse.y += (mouseTarget.y - mouse.y) * 0.09;
     };
 
     var planee = new _three2.default.Plane(new _three2.default.Vector3(0, 0, -1)),

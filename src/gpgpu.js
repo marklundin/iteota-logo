@@ -21,6 +21,7 @@ export default( renderer, origin, dimension ) => {
         uniforms:{
             uTex: { type: "t", value: buffers[0] },
             uMouse: { type: "v3", value: new THREE.Vector3(0, 0, 0) },
+            uMouseVel: { type: "v3", value: new THREE.Vector3(0, 0, 0) },
             uOrigin: { type: "t", value: origin },
             uResolution: { value: new THREE.Vector2( ...dimension ) },
             uTime: { value: 0.0 },
@@ -46,6 +47,7 @@ export default( renderer, origin, dimension ) => {
 
     let scene = new THREE.Scene(),
         mesh = new THREE.Mesh( new THREE.PlaneBufferGeometry( 1, 1 ), material ),
+        mouseLast = new THREE.Vector3(),
         target
 
     scene.add( mesh );
@@ -55,10 +57,13 @@ export default( renderer, origin, dimension ) => {
         let { source, target } = swap()
         material.uniforms.uTime.value = t
         material.uniforms.uMouse.value.copy( mouse )
+        material.uniforms.uMouseVel.value.subVectors( mouse, mouseLast )
+        // material.uniforms.uMouseVel.value.multiplyScalar( 0.56 )
         material.uniforms.uConverge.value = converge || 0
         material.uniforms.uTex.value = override || source
         renderer.render( scene, camera, target, false );
         // console.log( material.uniforms.uTime.value)
+        mouseLast.copy( mouse )
         return target
 
     }

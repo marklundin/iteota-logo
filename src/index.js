@@ -75,8 +75,8 @@ image.onload = _ => {
     while( l-- >= 0 ){
         radius = mix( l / len, minRadius, maxRadius )
         // console.log( radius)
-        altPositions.push( Math.sin( step * l ) * radius )
-        altPositions.push( Math.cos( step * l ) * radius )
+        altPositions.push(( Math.sin( step * l ) * radius ) + ( Math.random() * 10.0 ))
+        altPositions.push(( Math.cos( step * l ) * radius ) + ( Math.random() * 10.0 ))
         altPositions.push((len-l)* 0.01)
     }
 
@@ -128,7 +128,7 @@ image.onload = _ => {
         },
         uniforms:{
             uTex: { type: "t", value: output.texture },
-            uOpacity: { value: 0.3 },
+            uOpacity: { value: 0.0 },
             uTime: { value: 0.0 }
         },
         fragmentShader:glslify('./point.frag'),
@@ -180,7 +180,7 @@ image.onload = _ => {
     var prop = { converge: 0.0 }
 
 
-        TweenLite.to( logo.material, 2, { opacity: 0.95, delay: 8, onComplete:_=>{
+        TweenLite.to( material.uniforms.uOpacity, 4, { value: 0.3, onComplete:_=>{
             // document.onclick = _ => {
 
                 TweenLite.to( prop, 10, { converge: 1})
@@ -192,7 +192,8 @@ image.onload = _ => {
 
 
 
-    TweenLite.to( camera.position, 6, { z: 550 })
+        camera.position.z = 550
+    // TweenLite.to( camera.position, 6, { z: 550 })
 
 
 
@@ -201,12 +202,16 @@ image.onload = _ => {
 
 
     var mouse = new THREE.Vector2( 100, 100 ),
+        mouseTarget = new THREE.Vector2( 100, 100 ),
         mouse3D = new THREE.Vector3()
 
     document.onmousemove =  e => {
 
-        mouse.x = ( e.clientX / window.innerWidth ) * 2 - 1;
-	    mouse.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
+        mouseTarget.x = ( e.clientX / window.innerWidth ) * 2 - 1;
+	      mouseTarget.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
+
+        mouse.x += (mouseTarget.x  - mouse.x) * 0.09
+        mouse.y += (mouseTarget.y  - mouse.y) * 0.09
 
     }
 

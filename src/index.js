@@ -12,6 +12,7 @@ var renderer = new THREE.WebGLRenderer({alpha:false})
 var camera = new THREE.PerspectiveCamera( 90, window.innerWidth/window.innerHeight)
 var scene = new THREE.Scene()
 var ray = new THREE.Ray()
+var clock = new THREE.Clock(false)
 // var controls = new THREE.OrbitControls( camera, renderer.domElement )
 
 
@@ -235,7 +236,7 @@ image.onload = _ => {
         // console.log( sphere.position.x, sphere.position.y, sphere.position.z )
         // sphere.position.z = -100;
 
-        material.uniforms.uTex.value = stepGPU( null, t*0.005, prop.converge, mouse3D )
+        material.uniforms.uTex.value = stepGPU( null, clock.getDelta()*0.005, prop.converge, mouse3D )
         // console.log( material.uniforms.uMouse.value.x )
         // controls.update( t )
         renderer.render( scene, camera )
@@ -244,7 +245,8 @@ image.onload = _ => {
 
 
     resize()
-    render( Date.now() )
+    clock.start()
+    render()
 
 }
 
